@@ -2,6 +2,9 @@ import { GOOGLE_SCRIPT_URL } from '../config';
 
 const SHEETS_BASE = import.meta.env.DEV ? '/api/sheets' : GOOGLE_SCRIPT_URL;
 
+/** Em produção o GET é bloqueado por CORS; usar proxy público só para leitura dos itens. */
+const CORS_PROXY_GET = 'https://api.allorigins.win/raw?url=';
+
 /**
  * Busca ao carregar a página — retorna array de itens já escolhidos.
  * GET ?action=getItensSelecionados
@@ -11,11 +14,18 @@ export async function fetchItensSelecionados() {
   if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === 'COLE_AQUI_A_URL_DO_APPS_SCRIPT') {
     return [];
   }
+  const getUrl = `${GOOGLE_SCRIPT_URL}?action=getItensSelecionados`;
+  const url = import.meta.env.DEV ? `${SHEETS_BASE}?action=getItensSelecionados` : CORS_PROXY_GET + encodeURIComponent(getUrl);
   try {
-    const url = `${SHEETS_BASE}?action=getItensSelecionados`;
     const res = await fetch(url, { method: 'GET' });
     if (!res.ok) throw new Error('Falha ao buscar itens selecionados');
-    const data = await res.json();
+    const raw = await res.text();
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      return [];
+    }
     if (Array.isArray(data)) return data;
     if (data && Array.isArray(data.data)) return data.data;
     return [];
