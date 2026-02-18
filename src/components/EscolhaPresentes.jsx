@@ -12,16 +12,21 @@ function getItensDoComodo(itensPorComodo, nomeComodo) {
   return key ? itensPorComodo[key] || [] : []
 }
 
+/** Normaliza nome para comparação (colapsa espaços como na planilha vs itens.json). */
+function normalizarNome(str) {
+  return (str || '').trim().replace(/\s+/g, ' ')
+}
+
 function isBloqueado(bloqueados, comodoKey, nomeItem) {
   const c = (comodoKey || '').toLowerCase().trim()
-  const n = (nomeItem || '').trim()
+  const n = normalizarNome(nomeItem)
   if (!c || !n) return false
   return bloqueados.some((b) => {
     const bc = (b.comodo || '').toLowerCase().trim()
-    const bn = (b.nomeItem || '').trim()
+    const bn = (b.nomeItem || '').trim().replace(/\s+/g, ' ')
     if (bc !== c) return false
     if (bn === n) return true
-    // Compatível com planilha: nome pode vir completo ou item pode estar truncado
+    // Compatível com planilha: nome pode vir completo ou truncado
     return bn.includes(n) || n.includes(bn)
   })
 }

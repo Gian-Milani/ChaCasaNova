@@ -4,12 +4,17 @@ const SHEETS_BASE = import.meta.env.DEV ? '/api/sheets' : GOOGLE_SCRIPT_URL;
 
 const GET_URL = `${GOOGLE_SCRIPT_URL}?action=getItensSelecionados`;
 
-/** Normaliza itens da planilha para comparação consistente (comodo em minúsculo, nomeItem trim). */
+/** Colapsa espaços múltiplos e normaliza para comparação de nomes (planilha vs itens.json). */
+function normalizarNome(str) {
+  return (str || '').trim().replace(/\s+/g, ' ');
+}
+
+/** Normaliza itens da planilha para comparação consistente (comodo em minúsculo, nomeItem normalizado). */
 function normalizarBloqueados(arr) {
   if (!Array.isArray(arr)) return [];
   return arr.map((b) => ({
     comodo: (b.comodo || '').toLowerCase().trim(),
-    nomeItem: (b.nomeItem || '').trim(),
+    nomeItem: normalizarNome(b.nomeItem),
   })).filter((b) => b.comodo && b.nomeItem);
 }
 
@@ -46,19 +51,12 @@ export async function fetchItensSelecionados() {
     }
   }
 
-  // Produção: tentar direto (em alguns contextos pode funcionar), depois proxy
-  try {
-    const res = await fetch(GET_URL, { method: 'GET' });
-    if (res.ok) {
-      const raw = await res.text();
-      return parseResposta(raw);
-    }
-  } catch (_) {}
-
+  // Produção: CORS bloqueia fetch direto ao Google; tentar proxies primeiro
   const proxies = [
     () => fetch(`https://corsproxy.io/?${encodeURIComponent(GET_URL)}`).then((r) => r.text()),
-    () => fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(GET_URL)}`).then((r) => r.json()).then((d) => d.contents || ''),
     () => fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(GET_URL)}`).then((r) => r.text()),
+    () => fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(GET_URL)}`).then((r) => r.json()).then((d) => (d && d.contents) || ''),
+    () => fetch(GET_URL, { method: 'GET' }).then((r) => r.text()),
   ];
 
   for (const proxyFetch of proxies) {
