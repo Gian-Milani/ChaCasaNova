@@ -62,12 +62,14 @@ export default function App() {
         linkItem: p.link || '',
       })),
     }
+    const novosBloqueados = itensSelecionados.map((p) => ({
+      comodo: (p.comodo || '').toLowerCase().trim(),
+      nomeItem: (p.nome || '').trim(),
+    })).filter((p) => p.comodo && p.nomeItem)
+
     try {
       await confirmarPresente(payload)
-      setBloqueados((prev) => [
-        ...prev,
-        ...itensSelecionados.map((p) => ({ comodo: p.comodo, nomeItem: p.nome })),
-      ])
+      setBloqueados((prev) => [...prev, ...novosBloqueados])
       setEnviado(true)
     } catch (err) {
       // CORS bloqueia a resposta mesmo com 200; o POST costuma gravar na planilha — tratar como sucesso
@@ -78,10 +80,7 @@ export default function App() {
         msg.includes('CORS') ||
         msg.includes('NetworkError')
       if (isCorsOrNetwork) {
-        setBloqueados((prev) => [
-          ...prev,
-          ...itensSelecionados.map((p) => ({ comodo: p.comodo, nomeItem: p.nome })),
-        ])
+        setBloqueados((prev) => [...prev, ...novosBloqueados])
         setEnviado(true)
       } else {
         setError(msg || 'Falha ao enviar. Tente novamente.')

@@ -2,37 +2,74 @@ import { GOOGLE_SCRIPT_URL } from '../config';
 
 const SHEETS_BASE = import.meta.env.DEV ? '/api/sheets' : GOOGLE_SCRIPT_URL;
 
-/** Em produção o GET é bloqueado por CORS; usar proxy público só para leitura dos itens. */
-const CORS_PROXY_GET = 'https://api.allorigins.win/raw?url=';
+const GET_URL = `${GOOGLE_SCRIPT_URL}?action=getItensSelecionados`;
+
+/** Normaliza itens da planilha para comparação consistente (comodo em minúsculo, nomeItem trim). */
+function normalizarBloqueados(arr) {
+  if (!Array.isArray(arr)) return [];
+  return arr.map((b) => ({
+    comodo: (b.comodo || '').toLowerCase().trim(),
+    nomeItem: (b.nomeItem || '').trim(),
+  })).filter((b) => b.comodo && b.nomeItem);
+}
+
+function parseResposta(raw) {
+  let data;
+  try {
+    data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+  } catch {
+    return [];
+  }
+  const arr = Array.isArray(data) ? data : (data && Array.isArray(data.data) ? data.data : []);
+  return normalizarBloqueados(arr);
+}
 
 /**
  * Busca ao carregar a página — retorna array de itens já escolhidos.
  * GET ?action=getItensSelecionados
- * Retorna: [{ comodo: "cozinha", nomeItem: "Nome do item" }, ...]
+ * Em produção tenta direto e depois proxy (CORS bloqueia resposta do Google).
  */
 export async function fetchItensSelecionados() {
   if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === 'COLE_AQUI_A_URL_DO_APPS_SCRIPT') {
     return [];
   }
-  const getUrl = `${GOOGLE_SCRIPT_URL}?action=getItensSelecionados`;
-  const url = import.meta.env.DEV ? `${SHEETS_BASE}?action=getItensSelecionados` : CORS_PROXY_GET + encodeURIComponent(getUrl);
-  try {
-    const res = await fetch(url, { method: 'GET' });
-    if (!res.ok) throw new Error('Falha ao buscar itens selecionados');
-    const raw = await res.text();
-    let data;
+
+  if (import.meta.env.DEV) {
     try {
-      data = JSON.parse(raw);
-    } catch {
+      const res = await fetch(`${SHEETS_BASE}?action=getItensSelecionados`, { method: 'GET' });
+      if (!res.ok) return [];
+      const raw = await res.text();
+      return parseResposta(raw);
+    } catch (err) {
+      console.warn('fetchItensSelecionados:', err);
       return [];
     }
-    if (Array.isArray(data)) return data;
-    if (data && Array.isArray(data.data)) return data.data;
-    return [];
-  } catch (err) {
-    console.warn('fetchItensSelecionados:', err);
-    return [];
   }
+
+  // Produção: tentar direto (em alguns contextos pode funcionar), depois proxy
+  try {
+    const res = await fetch(GET_URL, { method: 'GET' });
+    if (res.ok) {
+      const raw = await res.text();
+      return parseResposta(raw);
+    }
+  } catch (_) {}
+
+  const proxies = [
+    () => fetch(`https://corsproxy.io/?${encodeURIComponent(GET_URL)}`).then((r) => r.text()),
+    () => fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(GET_URL)}`).then((r) => r.json()).then((d) => d.contents || ''),
+    () => fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(GET_URL)}`).then((r) => r.text()),
+  ];
+
+  for (const proxyFetch of proxies) {
+    try {
+      const raw = await proxyFetch();
+      const parsed = parseResposta(raw);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (_) {}
+  }
+
+  return [];
 }
 
 /**
