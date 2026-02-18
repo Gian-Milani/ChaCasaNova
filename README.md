@@ -1,4 +1,4 @@
-# Chá de Casa Nova — Tiago & Andressa 🏡
+# Chá de Casa Nova — Amanda & Gian 🏡
 
 Convite interativo de chá de casa nova: confirmação de presença e escolha de presentes por cômodo.
 
