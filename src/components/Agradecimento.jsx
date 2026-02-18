@@ -10,6 +10,7 @@ export default function Agradecimento({ onLimpar }) {
         className="max-w-2xl mx-auto space-y-6"
       >
         <div className="bg-chocolate text-white rounded-2xl shadow-lg p-6 sm:p-8 text-center">
+          <h2 className="font-playfair text-xl sm:text-2xl font-semibold mb-4">Formulário finalizado ✅</h2>
           <p className="font-playfair text-lg sm:text-xl leading-relaxed">
             Estamos felizes demais por tudo o que vem acontecendo conosco! E pelo fato de você
             contribuir com esta nova fase que estamos vivendo! Obrigado de coração! 💗
@@ -24,9 +25,9 @@ export default function Agradecimento({ onLimpar }) {
             Segue abaixo as informações novamente:
           </p>
           <div className="text-charcoal/90 text-center space-y-1 text-sm">
-            <p>📅 <strong>Data:</strong> 08/03/2026</p>
-            <p>⏰ <strong>Horário:</strong> 12:00</p>
-            <p>📍 <strong>Local:</strong> Chácara Refugio Serene (Taís e Danilo)</p>
+            <p>📆 <strong>Data:</strong> 08/03/2026</p>
+            <p>⏰ <strong>Horário:</strong> às 12h</p>
+            <p>📍 <strong>Local:</strong> chácara REFUGIO SERENE (Taís e Danilo)</p>
           </div>
           <p className="text-charcoal text-center pt-2">Nosso MUITO OBRIGADO mais uma vez! 💗</p>
         </div>

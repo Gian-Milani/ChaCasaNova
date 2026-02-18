@@ -20,28 +20,43 @@ export default function Hero() {
           className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 max-w-2xl mx-auto -mt-6 relative z-10"
         >
         <h1 className="font-playfair text-2xl sm:text-3xl text-charcoal text-center mb-4">
-          Chá de Casa Nova — Amanda & Gian 🏡
+          Chá de casa nova Amanda e Gian 🥳
         </h1>
         <p className="text-charcoal/90 text-center mb-4">
           Em mais uma etapa da nossa união, queremos convidar vocês para nosso chá de casa nova 🏠
         </p>
         <hr className="border-t border-pastel-pink/50 my-5" />
         <p className="font-semibold text-charcoal text-center mb-6">
-          Abaixo, você encontrará todos os detalhes da programação. Por favor, preencha o formulário! 🥰
+          Abaixo, você encontrará todos os detalhes da programação. Por favor preencher o formulário! 🥰
         </p>
         <div className="space-y-2 text-charcoal/90 text-center text-sm sm:text-base">
-          <p>📅 <strong>Data:</strong> 08/03/2026</p>
-          <p>⏰ <strong>Horário:</strong> 12:00</p>
-          <p>📍 <strong>Local:</strong> Chácara Refugio Serene (Taís e Danilo)</p>
+          <p>📆 <strong>Data:</strong> 08/03/2026</p>
+          <p>⏰ <strong>Horário:</strong> às 12h</p>
+          <p>📍 <strong>Local:</strong> chácara REFUGIO SERENE (Taís e Danilo)</p>
         </div>
         <p className="text-neutral text-sm text-center mt-4">
-          Cada convidado deverá levar apenas o presente escolhido na lista.
+          Obs.: Cada convidado deverá levar apenas o presente escolhido na lista.
         </p>
-        <p className="text-neutral text-sm text-center mt-1">
-          Fique tranquilo(a)! O presente que você escolheu na lista não ficará mais disponível para os outros convidados.
+        <p className="text-charcoal/90 text-sm text-center mt-3">
+          Nós ficaremos responsáveis, com muito carinho, por todos os comes e bebes — incluindo bebidas alcoólicas.<br />
+          <span className="italic">(Caprichem no presente) 😜</span>
         </p>
-        {/* Texto sobre sorteio — TODO/comentado para personalização */}
-        {/* <p className="text-charcoal/80 text-sm text-center mt-4">...</p> */}
+        <p className="text-neutral text-sm text-center mt-3">
+          Obs.: Fique tranquila(o)! O presente que você escolheu na lista, não ficará mais disponível para os outros convidados.
+        </p>
+        <p className="text-charcoal font-medium text-center mt-4">
+          Vai ter sorteio sim! 😍
+        </p>
+        <p className="text-charcoal/90 text-sm text-center mt-2">
+          Serão 2 cestas recheadas de cosméticos maravilhosos
+        </p>
+        <ul className="text-charcoal/90 text-sm text-center mt-1 space-y-0.5">
+          <li>✨ 1 masculina</li>
+          <li>✨ 1 feminina</li>
+        </ul>
+        <p className="font-semibold text-charcoal text-center mt-3">
+          Não fique de fora!
+        </p>
         </motion.div>
       </div>
     </header>

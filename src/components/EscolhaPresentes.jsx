@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import ItemCard from './ItemCard'
 import SacolaPresentes from './SacolaPresentes'
 
+const BASE = import.meta.env.BASE_URL || '/'
+
 function getItensDoComodo(itensPorComodo, nomeComodo) {
   const key = Object.keys(itensPorComodo).find(
     (k) => k.toLowerCase() === nomeComodo.toLowerCase()
@@ -11,11 +13,17 @@ function getItensDoComodo(itensPorComodo, nomeComodo) {
 }
 
 function isBloqueado(bloqueados, comodoKey, nomeItem) {
-  const c = (comodoKey || '').toLowerCase()
+  const c = (comodoKey || '').toLowerCase().trim()
   const n = (nomeItem || '').trim()
-  return bloqueados.some(
-    (b) => (b.comodo || '').toLowerCase() === c && (b.nomeItem || '').trim() === n
-  )
+  if (!c || !n) return false
+  return bloqueados.some((b) => {
+    const bc = (b.comodo || '').toLowerCase().trim()
+    const bn = (b.nomeItem || '').trim()
+    if (bc !== c) return false
+    if (bn === n) return true
+    // Compatível com planilha: nome pode vir completo ou item pode estar truncado
+    return bn.includes(n) || n.includes(bn)
+  })
 }
 
 export default function EscolhaPresentes({
@@ -99,10 +107,23 @@ export default function EscolhaPresentes({
             repetido por outro convidado.
           </li>
           <li>
-            Todas as fotos abaixo são da SHOPEE. Procure pelo nome do presente (título do item) e
-            use a foto como referência!
+            Todas as fotos abaixo são tiradas do aplicativo de vendas da SHOPEE onde vocês irão comprar os presentes. Vocês irão entrar na Shopee, procurar pelo nome do presente (título do item) e achar conforme a referência da foto do presente!
           </li>
         </ul>
+
+        {/* Preferência de cor dos presentes */}
+        <div className="rounded-xl overflow-hidden border border-pastel-pink/30 bg-champagne-light/50">
+          <div className="bg-chocolate text-white font-playfair text-base sm:text-lg font-semibold py-2.5 px-4 flex items-center gap-2">
+            Preferência de cor dos presentes 🎁 ❤️
+          </div>
+          <div className="p-4">
+            <img
+              src={`${BASE}images/cores.jpg`}
+              alt="Bambu + cores pastéis e Bambu + off white + cinza"
+              className="w-full max-w-md mx-auto rounded-lg shadow-inner object-contain"
+            />
+          </div>
+        </div>
 
         <div>
           <label className="block text-charcoal font-medium mb-2">

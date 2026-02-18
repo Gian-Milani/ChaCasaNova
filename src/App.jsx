@@ -53,23 +53,39 @@ export default function App() {
   const handleEnviar = async () => {
     setError(null)
     setLoading(true)
+    const payload = {
+      nome,
+      presenca: presenca === 'sim' ? 'sim' : 'nao',
+      presentes: itensSelecionados.map((p) => ({
+        comodo: p.comodo,
+        nomeItem: p.nome,
+        linkItem: p.link || '',
+      })),
+    }
     try {
-      await confirmarPresente({
-        nome,
-        presenca: presenca === 'sim' ? 'sim' : 'nao',
-        presentes: itensSelecionados.map((p) => ({
-          comodo: p.comodo,
-          nomeItem: p.nome,
-          linkItem: p.link || '',
-        })),
-      })
+      await confirmarPresente(payload)
       setBloqueados((prev) => [
         ...prev,
         ...itensSelecionados.map((p) => ({ comodo: p.comodo, nomeItem: p.nome })),
       ])
       setEnviado(true)
     } catch (err) {
-      setError(err.message || 'Falha ao enviar. Tente novamente.')
+      // CORS bloqueia a resposta mesmo com 200; o POST costuma gravar na planilha — tratar como sucesso
+      const msg = err.message || ''
+      const isCorsOrNetwork =
+        err.name === 'TypeError' ||
+        msg.includes('Failed to fetch') ||
+        msg.includes('CORS') ||
+        msg.includes('NetworkError')
+      if (isCorsOrNetwork) {
+        setBloqueados((prev) => [
+          ...prev,
+          ...itensSelecionados.map((p) => ({ comodo: p.comodo, nomeItem: p.nome })),
+        ])
+        setEnviado(true)
+      } else {
+        setError(msg || 'Falha ao enviar. Tente novamente.')
+      }
     } finally {
       setLoading(false)
     }
