@@ -13,30 +13,21 @@ var SHEET_NAME_RESPOSTAS = 'Respostas';
 var SHEET_NAME_ITENS = 'ItensSelecionados';
 
 /**
- * Retorna headers CORS para permitir chamadas do frontend (React/Vite).
+ * TextOutput no Apps Script não tem setHeaders() — isso causava erro em todas as execuções.
+ * CORS é tratado pelo deploy "Quem acessa: Qualquer pessoa".
  */
-function getCorsHeaders() {
-  return {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Max-Age': '86400'
-  };
-}
 
 /**
- * Responde a requisições OPTIONS (preflight CORS).
+ * Responde OPTIONS (preflight CORS) para POST.
  */
 function doOptions(e) {
-  return ContentService.createTextOutput('')
-    .setMimeType(ContentService.MimeType.TEXT)
-    .setHeaders(getCorsHeaders());
+  return ContentService.createTextOutput('').setMimeType(ContentService.MimeType.TEXT);
 }
 
 /**
  * GET — Retorna todos os registros da aba "ItensSelecionados".
  * Parâmetro: action=getItensSelecionados
+ * Parâmetro opcional: callback=NomeFuncao → resposta JSONP (evita CORS no GitHub Pages)
  * Resposta: array de objetos [{ comodo: "...", nomeItem: "..." }, ...]
  */
 function doGet(e) {
@@ -59,9 +50,16 @@ function doGet(e) {
   } catch (err) {
     result.error = err.toString();
   }
+
+  var callback = (e && e.parameter && e.parameter.callback) ? String(e.parameter.callback).replace(/[^a-zA-Z0-9_.]/g, '') : '';
+  if (callback) {
+    // JSONP: navegador carrega como <script>, sem CORS
+    var jsonp = callback + '(' + JSON.stringify(result.data) + ')';
+    return ContentService.createTextOutput(jsonp)
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
   return ContentService.createTextOutput(JSON.stringify(result.data))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeaders(getCorsHeaders());
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 /**
@@ -116,8 +114,7 @@ function doPost(e) {
 
 function response(result) {
   return ContentService.createTextOutput(JSON.stringify(result))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeaders(getCorsHeaders());
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 function getRespostasSheet() {

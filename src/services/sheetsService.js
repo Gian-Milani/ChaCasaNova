@@ -1,4 +1,4 @@
-import { GOOGLE_SCRIPT_URL } from '../config';
+import { GOOGLE_SCRIPT_URL, GET_ITENS_PROXY_URL } from '../config';
 
 const SHEETS_BASE = import.meta.env.DEV ? '/api/sheets' : GOOGLE_SCRIPT_URL;
 
@@ -51,14 +51,29 @@ export async function fetchItensSelecionados() {
     }
   }
 
-  // Produção: CORS bloqueia fetch direto ao Google; tentar proxies primeiro
+  // Produção: proxy próprio > JSONP (evita CORS sem outro deploy) > proxies públicos > direto
+  const proxyUrl = typeof GET_ITENS_PROXY_URL === 'string' && GET_ITENS_PROXY_URL.trim();
+  if (proxyUrl) {
+    try {
+      const raw = await fetch(proxyUrl.trim(), { method: 'GET' }).then((r) => r.text());
+      const parsed = parseResposta(raw);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (_) {}
+  } else {
+    // JSONP: carrega a URL como <script> — não há CORS (requer Apps Script com ?callback=...)
+    try {
+      const data = await fetchViaJsonp(GET_URL);
+      const parsed = Array.isArray(data) ? normalizarBloqueados(data) : parseResposta(JSON.stringify(data || []));
+      if (Array.isArray(parsed)) return parsed;
+    } catch (_) {}
+  }
+
   const proxies = [
     () => fetch(`https://corsproxy.io/?${encodeURIComponent(GET_URL)}`).then((r) => r.text()),
     () => fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(GET_URL)}`).then((r) => r.text()),
     () => fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(GET_URL)}`).then((r) => r.json()).then((d) => (d && d.contents) || ''),
     () => fetch(GET_URL, { method: 'GET' }).then((r) => r.text()),
   ];
-
   for (const proxyFetch of proxies) {
     try {
       const raw = await proxyFetch();
@@ -67,7 +82,42 @@ export async function fetchItensSelecionados() {
     } catch (_) {}
   }
 
-  return [];
+  const err = new Error('Não foi possível carregar itens já selecionados. Atualize o Apps Script com suporte a JSONP (parâmetro callback) e faça novo deploy do script.');
+  err.code = 'FETCH_BLOQUEADOS_FAILED';
+  throw err;
+}
+
+/**
+ * JSONP: carrega a URL com ?callback=Nome e executa no global — não sofre CORS.
+ * O Apps Script deve retornar Nome([...]) (MimeType.JAVASCRIPT).
+ */
+function fetchViaJsonp(url) {
+  return new Promise((resolve, reject) => {
+    const cbName = '__chacasanovaItens_' + Date.now();
+    const timeout = setTimeout(() => {
+      cleanup();
+      reject(new Error('JSONP timeout'));
+    }, 15000);
+
+    function cleanup() {
+      clearTimeout(timeout);
+      if (script.parentNode) script.remove();
+      try { delete window[cbName]; } catch (_) {}
+    }
+
+    window[cbName] = (data) => {
+      cleanup();
+      resolve(data);
+    };
+
+    const script = document.createElement('script');
+    script.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + cbName;
+    script.onerror = () => {
+      cleanup();
+      reject(new Error('JSONP script error'));
+    };
+    document.head.appendChild(script);
+  });
 }
 
 /**

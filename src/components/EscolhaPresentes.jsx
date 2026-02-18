@@ -19,14 +19,14 @@ function normalizarNome(str) {
 
 function isBloqueado(bloqueados, comodoKey, nomeItem) {
   const c = (comodoKey || '').toLowerCase().trim()
-  const n = normalizarNome(nomeItem)
+  const n = normalizarNome(nomeItem).toLowerCase()
   if (!c || !n) return false
   return bloqueados.some((b) => {
     const bc = (b.comodo || '').toLowerCase().trim()
-    const bn = (b.nomeItem || '').trim().replace(/\s+/g, ' ')
+    const bn = (b.nomeItem || '').trim().replace(/\s+/g, ' ').toLowerCase()
     if (bc !== c) return false
     if (bn === n) return true
-    // Compatível com planilha: nome pode vir completo ou truncado
+    // Compatível com planilha: nome pode vir completo ou truncado (ignora maiúsculas)
     return bn.includes(n) || n.includes(bn)
   })
 }
