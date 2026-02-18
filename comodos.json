@@ -1,0 +1,22 @@
+[
+    {
+        "nome": "Banheiro",
+        "icone": "🚿"
+    },
+    {
+        "nome": "Cozinha",
+        "icone": "🍳"
+    },
+    {
+        "nome": "Lavanderia",
+        "icone": "🧺"
+    },
+    {
+        "nome": "Quarto",
+        "icone": "🛏️"
+    },
+    {
+        "nome": "Sala",
+        "icone": "🛋️"
+    }
+]

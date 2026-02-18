@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply font-inter text-charcoal bg-champagne antialiased;
+}
+
+h1, h2, h3 {
+  @apply font-playfair;
+}
