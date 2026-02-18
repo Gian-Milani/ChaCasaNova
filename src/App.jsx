@@ -23,12 +23,21 @@ export default function App() {
   const [error, setError] = useState(null)
   const [bloqueados, setBloqueados] = useState([]) // [{ comodo, nomeItem }]
 
+  /** Carrega itens já selecionados (planilha ItensSelecionados) ao montar a página. */
   useEffect(() => {
     fetchItensSelecionados().then((data) => {
       if (Array.isArray(data)) setBloqueados(data)
       else if (data && Array.isArray(data.data)) setBloqueados(data.data)
     })
   }, [])
+
+  /** Recarrega itens bloqueados (ex.: ao escolher cômodo) para marcar corretamente no front. */
+  const refetchBloqueados = () => {
+    fetchItensSelecionados().then((data) => {
+      if (Array.isArray(data)) setBloqueados(data)
+      else if (data && Array.isArray(data.data)) setBloqueados(data.data)
+    })
+  }
 
   const handleProximoDados = (nomeVal, presencaVal) => {
     setNome(nomeVal)
@@ -135,6 +144,7 @@ export default function App() {
                 itensSelecionados={itensSelecionados}
                 setItensSelecionados={setItensSelecionados}
                 onProximo={handleProximoPresentes}
+                onRefetchBloqueados={refetchBloqueados}
               />
             </motion.div>
           )}

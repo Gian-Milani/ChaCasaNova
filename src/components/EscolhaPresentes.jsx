@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ItemCard from './ItemCard'
 import SacolaPresentes from './SacolaPresentes'
@@ -33,8 +33,17 @@ export default function EscolhaPresentes({
   itensSelecionados,
   setItensSelecionados,
   onProximo,
+  onRefetchBloqueados,
 }) {
   const [comodoSelecionado, setComodoSelecionado] = useState('')
+
+  // Ao escolher um cômodo no combo, recarrega itens já selecionados para marcar no front
+  useEffect(() => {
+    if (comodoSelecionado && typeof onRefetchBloqueados === 'function') {
+      onRefetchBloqueados()
+    }
+  }, [comodoSelecionado])
+
   const comodoNome = comodoSelecionado
     ? comodos.find((c) => c.nome === comodoSelecionado)?.nome
     : ''
